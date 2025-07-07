@@ -249,7 +249,6 @@
       const subject = document.getElementById("hwSubject").value.trim();
       const text = document.getElementById("hwText").value.trim();
       const teacher = document.getElementById("hwTeacher").value.trim();
-
       const hw = {
         date: new Date().toISOString().split('T')[0],
         subject,
@@ -257,11 +256,10 @@
         teacher,
         class: currentUser.class
       };
-
       db.ref(`homework/class${currentUser.class}`).push(hw);
       document.getElementById("addHomeworkModal").classList.add("hidden");
       e.target.reset();
-      updateUIForUser();
+      updateUIForUser(); // refresh
     }
 
     function deleteHomework(id) {
@@ -286,7 +284,7 @@
           <td class="px-6 py-4">Class ${hw.class}</td>
           <td class="px-6 py-4">${hw.subject}</td>
           <td class="px-6 py-4">${hw.text}</td>
-          <td class="px-6 py-4">${hw.teacher}</td>
+          <td class="px-6 py-4">${hw.teacher || ''}</td>
           <td class="px-6 py-4">
             ${currentUser.role === "teacher"
               ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600">Delete</button>` : ""}
