@@ -20,43 +20,18 @@
       height: 12px;
       border-radius: 50%;
     }
-    .teacher::after {
-      background-color: #3B82F6;
-    }
-    .guardian::after {
-      background-color: #10B981;
-    }
-    .homework-table {
-      min-width: 100%;
-    }
+    .teacher::after { background-color: #3B82F6; }
+    .guardian::after { background-color: #10B981; }
     .homework-table th.sortable:hover {
       background-color: #F3F4F6;
       cursor: pointer;
-    }
-    .homework-table th.sortable::after {
-      content: "↕";
-      margin-left: 5px;
-      opacity: 0.5;
-      font-size: 0.8em;
-    }
-    .homework-table th.sorted-asc::after {
-      content: "↑";
-      opacity: 1;
-    }
-    .homework-table th.sorted-desc::after {
-      content: "↓";
-      opacity: 1;
     }
     .grade-badge {
       font-size: 0.75rem;
       padding: 0.25rem 0.5rem;
       border-radius: 9999px;
     }
-    .grid-stack {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      height: 100vh;
-    }
+    .grid-stack { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -98,11 +73,18 @@
         <div class="mb-4">
           <label for="userClass" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
           <select id="userClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            <select id="userClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            <option value="Play">Play</option>
+            <option value="Nursery">Nursery</option>
             <option value="1">Class 1</option>
             <option value="2">Class 2</option>
             <option value="3">Class 3</option>
             <option value="4">Class 4</option>
             <option value="5">Class 5</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+</select>
           </select>
         </div>
 
@@ -136,11 +118,11 @@
             <table class="homework-table min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sortable" data-column="date">Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sortable" data-column="subject">Subject</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Homework</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sortable" data-column="dueDate">Due Date</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
                   <th id="actionsHeader" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
@@ -187,7 +169,23 @@
     </main>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAiRPVznkJg8krc1J2IR34hmVhIl5aCdII",
+      authDomain: "smia-homework.firebaseapp.com",
+      databaseURL: "https://smia-homework-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "smia-homework",
+      storageBucket: "smia-homework.firebasestorage.app",
+      messagingSenderId: "909329408177",
+      appId: "1:909329408177:web:969577fab9f738c7fec290"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     let currentUser = null;
     let homeworkData = [];
 
@@ -203,18 +201,9 @@
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      if (role === 'teacher') {
-        if (username !== 'SMIAT' || password !== 'teachers') {
-          alert('Invalid teacher credentials');
-          return;
-        }
-      } else if (role === 'guardian') {
-        if (username !== 'SMIAG' || password !== 'guardians') {
-          alert('Invalid guardian credentials');
-          return;
-        }
-      } else {
-        alert('Invalid role selected');
+      if ((role === 'teacher' && (username !== 'SMIAT' || password !== 'teachers')) ||
+          (role === 'guardian' && (username !== 'SMIAG' || password !== 'guardians'))) {
+        alert('Invalid credentials');
         return;
       }
 
@@ -226,16 +215,16 @@
       document.getElementById("loginForm").classList.add("hidden");
       document.getElementById("dashboard").classList.remove("hidden");
       document.getElementById("logoutBtn").classList.remove("hidden");
-
       document.getElementById("usernameDisplay").textContent = currentUser.username;
+
       const roleDisplay = document.getElementById("roleDisplay");
       roleDisplay.textContent = currentUser.role;
       roleDisplay.className = `role-indicator ${currentUser.role}`;
 
-      const dashboardTitle = document.getElementById("dashboardTitle");
-      dashboardTitle.textContent = currentUser.role === "teacher"
-        ? `Teacher Dashboard - Class ${currentUser.class}`
-        : `Homework View - Class ${currentUser.class}`;
+      document.getElementById("dashboardTitle").textContent =
+        currentUser.role === "teacher"
+          ? `Teacher Dashboard - Class ${currentUser.class}`
+          : `Homework View - Class ${currentUser.class}`;
 
       if (currentUser.role === "teacher") {
         document.getElementById("teacherControls").classList.remove("hidden");
@@ -245,7 +234,14 @@
         document.getElementById("actionsHeader").style.display = "none";
       }
 
-      renderHomework();
+      const classPath = `homework/class${currentUser.class}`;
+      db.ref(classPath).once("value", (snapshot) => {
+        const data = snapshot.val();
+        homeworkData = data
+          ? Object.entries(data).map(([id, val]) => ({ id, ...val }))
+          : [];
+        renderHomework();
+      });
     }
 
     function handleLogout() {
@@ -260,79 +256,50 @@
       const subject = document.getElementById("hwSubject").value.trim();
       const text = document.getElementById("hwText").value.trim();
       const dueDate = document.getElementById("hwDueDate").value;
-
-      homeworkData.push({
+      const hw = {
         date: new Date().toISOString().split('T')[0],
         subject,
         text,
         dueDate,
         class: currentUser.class
-      });
-
+      };
+      db.ref(`homework/class${currentUser.class}`).push(hw);
       document.getElementById("addHomeworkModal").classList.add("hidden");
       e.target.reset();
+      updateUIForUser(); // refresh
+    }
+
+    function deleteHomework(id) {
+      db.ref(`homework/class${currentUser.class}/${id}`).remove();
+      homeworkData = homeworkData.filter(hw => hw.id !== id);
       renderHomework();
     }
 
     function renderHomework() {
       const tableBody = document.getElementById("homeworkTableBody");
       tableBody.innerHTML = "";
-
-      const classFilter = currentUser.class;
-      const filtered = homeworkData.filter(hw => hw.class === classFilter);
-
+      const filtered = homeworkData.filter(hw => hw.class === currentUser.class);
       if (filtered.length === 0) {
         document.getElementById("emptyState").classList.remove("hidden");
         return;
       }
-
       document.getElementById("emptyState").classList.add("hidden");
-
       filtered.forEach(hw => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap">${hw.date}</td>
-          <td class="px-6 py-4 whitespace-nowrap">Class ${hw.class}</td>
-          <td class="px-6 py-4 whitespace-nowrap">${hw.subject}</td>
-          <td class="px-6 py-4 whitespace-normal">${hw.text}</td>
-          <td class="px-6 py-4 whitespace-nowrap">${hw.dueDate}</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            ${currentUser.role === "teacher" ? `<button class="text-sm text-red-600 hover:text-red-800" onclick="deleteHomework('${hw.date}','${hw.subject}')">Delete</button>` : ""}
+          <td class="px-6 py-4">${hw.date}</td>
+          <td class="px-6 py-4">Class ${hw.class}</td>
+          <td class="px-6 py-4">${hw.subject}</td>
+          <td class="px-6 py-4">${hw.text}</td>
+          <td class="px-6 py-4">${hw.dueDate}</td>
+          <td class="px-6 py-4">
+            ${currentUser.role === "teacher"
+              ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600">Delete</button>` : ""}
           </td>
         `;
         tableBody.appendChild(tr);
       });
     }
-
-    function deleteHomework(date, subject) {
-      homeworkData = homeworkData.filter(hw => hw.date !== date || hw.subject !== subject);
-      renderHomework();
-    }
   </script>
-  
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyAiRPVznkJg8krc1J2IR34hmVhIl5aCdII",
-    authDomain: "smia-homework.firebaseapp.com",
-    databaseURL: "https://smia-homework-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "smia-homework",
-    storageBucket: "smia-homework.firebasestorage.app",
-    messagingSenderId: "909329408177",
-    appId: "1:909329408177:web:969577fab9f738c7fec290"
-  };
-
-  // Initialize Firebase App and Database
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-</script>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </body>
 </html>
