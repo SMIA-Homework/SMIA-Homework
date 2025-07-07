@@ -327,8 +327,9 @@
     appId: "1:909329408177:web:969577fab9f738c7fec290"
   };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  // Initialize Firebase App and Database
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 </script>
   <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
