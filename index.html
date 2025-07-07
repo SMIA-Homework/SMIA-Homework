@@ -5,33 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SMIA Homework Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    .role-indicator {
-      position: relative;
-      padding-right: 30px;
-    }
-    .role-indicator::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
+    .role-indicator { position: relative; padding-right: 30px; }
+    .role-indicator::after { content: ''; position: absolute; top: 50%; right: 10px; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 50%; }
     .teacher::after { background-color: #3B82F6; }
     .guardian::after { background-color: #10B981; }
-    .homework-table th.sortable:hover {
-      background-color: #F3F4F6;
-      cursor: pointer;
-    }
     .grid-stack { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
   </style>
 </head>
 <body class="bg-gray-50">
   <div class="grid-stack">
-    <!-- Header -->
     <header class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <div class="flex items-center">
@@ -50,112 +35,53 @@
         </div>
       </div>
     </header>
-
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 py-6">
-      <!-- Login Form -->
       <div id="loginForm" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Login to Homework Tracker</h2>
-
         <div class="mb-4">
-          <label for="userRole" class="block text-sm font-medium text-gray-700 mb-1">I am a</label>
-          <select id="userRole" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            <option value="teacher">Teacher</option>
-            <option value="guardian">Guardian</option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-1">I am a</label>
+          <select id="userRole" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="teacher">Teacher</option><option value="guardian">Guardian</option></select>
         </div>
-
         <div class="mb-4">
-          <label for="userClass" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Class</label>
           <select id="userClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            <option value="Play">Play</option>
-            <option value="Nursery">Nursery</option>
-            <option value="1">Class 1</option>
-            <option value="2">Class 2</option>
-            <option value="3">Class 3</option>
-            <option value="4">Class 4</option>
-            <option value="5">Class 5</option>
-            <option value="6">Class 6</option>
-            <option value="7">Class 7</option>
-            <option value="8">Class 8</option>
+            <option value="Play">Play</option><option value="Nursery">Nursery</option><option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option>
           </select>
         </div>
-
-        <div class="mb-4">
-          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-          <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
-        </div>
-
-        <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md"/>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <button id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Login</button>
-        </div>
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Username</label><input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md"/></div>
+        <div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-1">Password</label><input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md"/></div>
+        <div class="flex items-center justify-between"><button id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Login</button></div>
       </div>
 
-      <!-- Dashboard -->
       <div id="dashboard" class="hidden">
         <div class="flex justify-between items-center mb-6">
           <h2 id="dashboardTitle" class="text-2xl font-bold text-gray-800"></h2>
-          <div id="teacherControls" class="hidden space-x-2">
-            <button id="addHomeworkBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">Add Homework</button>
+          <div class="space-x-2">
+            <button id="addHomeworkBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hidden">Add Homework</button>
+            <button id="exportPdfBtn" class="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Export PDF</button>
           </div>
         </div>
 
-        <!-- Homework Table -->
-        <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="homework-table min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Homework</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
-                  <th id="actionsHeader" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="homeworkTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+        <div class="bg-white shadow-sm rounded-lg overflow-hidden mb-4">
+          <div class="overflow-x-auto" id="tableContainer">
+            <table class="homework-table min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>
+              <th>Date</th><th>Class</th><th>Subject</th><th>Homework</th><th>Teacher</th><th id="actionsHeader">Actions</th>
+            </tr></thead>
+            <tbody id="homeworkTableBody"></tbody>
             </table>
           </div>
         </div>
-
-        <!-- Empty state -->
-        <div id="emptyState" class="hidden mt-12 text-center">
-          <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8c0a37ea-e817-43da-98f3-569ea60b3885.png" class="mx-auto h-48" />
-          <h3 class="mt-4 text-lg font-medium text-gray-900">No homework assigned yet</h3>
-          <p class="mt-1 text-sm text-gray-500">Get started by adding homework assignments</p>
-          <div class="mt-6" id="emptyStateButton"></div>
-        </div>
+        <div id="emptyState" class="hidden mt-12 text-center"><img src="https://storage.googleapis.com/…empty.png" class="mx-auto h-48"/><h3 class="mt-4 text-lg font-medium">No homework assigned yet</h3><p class="mt-1 text-sm text-gray-500">Add homework or export</p></div>
       </div>
 
-      <!-- Modal -->
       <div id="addHomeworkModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Add Homework</h3>
-            <button id="closeModal" class="text-gray-500 hover:text-gray-700">&times;</button>
-          </div>
+          <div class="flex justify-between mb-4"><h3 class="text-lg font-semibold">Add Homework</h3><button id="closeModal" class="text-gray-500">&times;</button></div>
           <form id="homeworkForm">
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-              <input type="text" id="hwSubject" required class="w-full px-3 py-2 border border-gray-300 rounded-md" />
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Homework</label>
-              <textarea id="hwText" required class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Teacher's Name</label>
-              <input type="text" id="hwTeacher" required class="w-full px-3 py-2 border border-gray-300 rounded-md" />
-            </div>
-            <div class="flex justify-end">
-              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
-            </div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input type="text" id="hwSubject" required class="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Homework</label><textarea id="hwText" required class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea></div>
+            <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Teacher's Name</label><input type="text" id="hwTeacher" required class="w-full px-3 py-2 border border-gray-300 rounded-md" /></div>
+            <div class="flex justify-end"><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button></div>
           </form>
         </div>
       </div>
@@ -165,135 +91,120 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAiRPVznkJg8krc1J2IR34hmVhIl5aCdII",
-      authDomain: "smia-homework.firebaseapp.com",
-      databaseURL: "https://smia-homework-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "smia-homework",
-      storageBucket: "smia-homework.firebasestorage.app",
-      messagingSenderId: "909329408177",
-      appId: "1:909329408177:web:969577fab9f738c7fec290"
-    };
 
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    const firebaseConfig = { apiKey:"…", /* your config */ };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    let currentUser = null, homeworkData = [];
 
-    let currentUser = null;
-    let homeworkData = [];
-
+    // DOM listeners
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
     document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-    document.getElementById("addHomeworkBtn").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.remove("hidden"));
-    document.getElementById("closeModal").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.add("hidden"));
+    document.getElementById("addHomeworkBtn").addEventListener("click", () => showModal(true));
+    document.getElementById("closeModal").addEventListener("click", () => showModal(false));
     document.getElementById("homeworkForm").addEventListener("submit", handleHomeworkSubmit);
+    document.getElementById("exportPdfBtn").addEventListener("click", exportToPDF);
+
+    // Restore login
+    window.addEventListener("DOMContentLoaded", () => {
+      const u = localStorage.getItem("currentUser");
+      if (u) { currentUser = JSON.parse(u); updateUI(); }
+    });
 
     function handleLogin() {
-      const role = document.getElementById("userRole").value;
-      const selectedClass = document.getElementById("userClass").value;
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if ((role === 'teacher' && (username !== 'SMIAT' || password !== 'teachers')) ||
-          (role === 'guardian' && (username !== 'SMIAG' || password !== 'guardians'))) {
-        alert('Invalid credentials');
-        return;
+      const r = document.getElementById("userRole").value;
+      const c = document.getElementById("userClass").value;
+      const u = document.getElementById("username").value.trim();
+      const p = document.getElementById("password").value.trim();
+      if ((r==="teacher" && (u!=="SMIAT"||p!=="teachers")) || (r==="guardian" && (u!=="SMIAG"||p!=="guardians"))) {
+        return alert("Invalid credentials");
       }
-
-      currentUser = { username, role, class: selectedClass };
-      updateUIForUser();
-    }
-
-    function updateUIForUser() {
-      document.getElementById("loginForm").classList.add("hidden");
-      document.getElementById("dashboard").classList.remove("hidden");
-      document.getElementById("logoutBtn").classList.remove("hidden");
-      document.getElementById("usernameDisplay").textContent = currentUser.username;
-
-      const roleDisplay = document.getElementById("roleDisplay");
-      roleDisplay.textContent = currentUser.role;
-      roleDisplay.className = `role-indicator ${currentUser.role}`;
-
-      document.getElementById("dashboardTitle").textContent =
-        currentUser.role === "teacher"
-          ? `Teacher Dashboard - Class ${currentUser.class}`
-          : `Homework View - Class ${currentUser.class}`;
-
-      if (currentUser.role === "teacher") {
-        document.getElementById("teacherControls").classList.remove("hidden");
-        document.getElementById("actionsHeader").style.display = "table-cell";
-      } else {
-        document.getElementById("teacherControls").classList.add("hidden");
-        document.getElementById("actionsHeader").style.display = "none";
-      }
-
-      const classPath = `homework/class${currentUser.class}`;
-      db.ref(classPath).once("value", (snapshot) => {
-        const data = snapshot.val();
-        homeworkData = data
-          ? Object.entries(data).map(([id, val]) => ({ id, ...val }))
-          : [];
-        renderHomework();
-      });
+      currentUser = { username:u, role:r, class:c };
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+      updateUI();
     }
 
     function handleLogout() {
       currentUser = null;
+      localStorage.removeItem("currentUser");
       document.getElementById("loginForm").classList.remove("hidden");
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
     }
 
+    function updateUI() {
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("usernameDisplay").textContent = currentUser.username;
+      const rd = document.getElementById("roleDisplay");
+      rd.textContent = currentUser.role; rd.className = `role-indicator ${currentUser.role}`;
+      document.getElementById("dashboardTitle").textContent = `${currentUser.role==="teacher" ? "Teacher Dashboard" : "Homework View"} - Class ${currentUser.class}`;
+      document.getElementById("addHomeworkBtn").classList.toggle("hidden", currentUser.role!=="teacher");
+      document.getElementById("actionsHeader").style.display = currentUser.role==="teacher" ? "" : "none";
+      db.ref(`homework/class${currentUser.class}`).on("value", snap => {
+        const d = snap.val();
+        homeworkData = d ? Object.entries(d).map(([id, v]) => ({id, ...v})) : [];
+        renderHomework();
+      });
+    }
+
     function handleHomeworkSubmit(e) {
       e.preventDefault();
-      const subject = document.getElementById("hwSubject").value.trim();
-      const text = document.getElementById("hwText").value.trim();
-      const teacher = document.getElementById("hwTeacher").value.trim();
-
-      const hw = {
-        date: new Date().toISOString().split('T')[0],
-        subject,
-        text,
-        teacher,
-        class: currentUser.class
-      };
-
+      const sub = document.getElementById("hwSubject").value.trim();
+      const txt = document.getElementById("hwText").value.trim();
+      const tchr = document.getElementById("hwTeacher").value.trim();
+      const hw = { date: new Date().toISOString().split('T')[0], subject:sub, text:txt, teacher:tchr, class:currentUser.class };
       db.ref(`homework/class${currentUser.class}`).push(hw);
-      document.getElementById("addHomeworkModal").classList.add("hidden");
+      showModal(false);
       e.target.reset();
-      updateUIForUser();
     }
 
     function deleteHomework(id) {
       db.ref(`homework/class${currentUser.class}/${id}`).remove();
-      homeworkData = homeworkData.filter(hw => hw.id !== id);
-      renderHomework();
     }
 
     function renderHomework() {
-      const tableBody = document.getElementById("homeworkTableBody");
-      tableBody.innerHTML = "";
-      const filtered = homeworkData.filter(hw => hw.class === currentUser.class);
-      if (filtered.length === 0) {
-        document.getElementById("emptyState").classList.remove("hidden");
-        return;
-      }
+      const tb = document.getElementById("homeworkTableBody");
+      tb.innerHTML = "";
+      const filtered = homeworkData.filter(hw => hw.class===currentUser.class);
+      if (filtered.length === 0) return document.getElementById("emptyState").classList.remove("hidden");
       document.getElementById("emptyState").classList.add("hidden");
       filtered.forEach(hw => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="px-6 py-4">${hw.date}</td>
-          <td class="px-6 py-4">Class ${hw.class}</td>
-          <td class="px-6 py-4">${hw.subject}</td>
-          <td class="px-6 py-4">${hw.text}</td>
-          <td class="px-6 py-4">${hw.teacher}</td>
-          <td class="px-6 py-4">
-            ${currentUser.role === "teacher"
-              ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600">Delete</button>` : ""}
-          </td>
-        `;
-        tableBody.appendChild(tr);
+        tr.innerHTML = `<td class="px-6 py-4">${hw.date}</td><td class="px-6 py-4">${hw.class}</td><td class="px-6 py-4">${hw.subject}</td><td class="px-6 py-4">${hw.text}</td><td class="px-6 py-4">${hw.teacher}</td><td class="px-6 py-4">${currentUser.role==="teacher" ? `<button class="text-red-600" onclick="deleteHomework('${hw.id}')">Delete</button>` : ""}</td>`;
+        tb.appendChild(tr);
       });
+    }
+
+    function showModal(open) {
+      document.getElementById("addHomeworkModal").classList.toggle("hidden", !open);
+    }
+
+    async function exportToPDF() {
+      const container = document.getElementById("tableContainer");
+      const canvas = await html2canvas(container, { scale:2 });
+      const img = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ unit:"pt", format:"a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(img);
+      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+
+      pdf.setFontSize(18);
+      pdf.text("SMIA Homework Tracker", pageWidth / 2, 40, { align:"center" });
+      const logo = document.querySelector("header img");
+      if (logo) {
+        const logoCanvas = await html2canvas(logo, { scale:2 });
+        const logoImg = logoCanvas.toDataURL("image/png");
+        const logoHeight = 50;
+        pdf.addImage(logoImg, "PNG", (pageWidth - 50) / 2, 60, 50, logoHeight);
+      }
+
+      pdf.addImage(img, "PNG", 20, 120, pageWidth - 40, imgHeight);
+      pdf.save(`SMIA_Homework_${currentUser.class}_${new Date().toISOString().split("T")[0]}.pdf`);
     }
   </script>
 </body>
