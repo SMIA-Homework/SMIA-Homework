@@ -1,3 +1,4 @@
+<html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -38,7 +39,7 @@
           <h1 class="ml-3 text-xl font-semibold text-gray-900">SMIA Homework Tracker</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <div id="currentUser Display" class="hidden md:flex items-center">
+          <div id="currentUser  Display" class="hidden md:flex items-center">
             <span id="usernameDisplay" class="font-medium"></span>
             <span id="roleDisplay" class="role-indicator ml-2 px-3 py-1 rounded-full text-sm font-medium"></span>
           </div>
@@ -70,14 +71,14 @@
           <select id="userClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
             <option value="Play">Play</option>
             <option value="Nursery">Nursery</option>
-            <option value="1">Class 1</option>
-            <option value="2">Class 2</option>
-            <option value="3">Class 3</option>
-            <option value="4">Class 4</option>
-            <option value="5">Class 5</option>
-            <option value="6">Class 6</option>
-            <option value="7">Class 7</option>
-            <option value="8">Class 8</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
           </select>
         </div>
 
@@ -183,7 +184,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentUser  = null;
+    let currentUser   = null;
     let homeworkData = [];
 
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
@@ -205,28 +206,28 @@
         return;
       }
 
-      currentUser  = { username, role, class: selectedClass };
-      updateUIForUser ();
+      currentUser   = { username, role, class: selectedClass };
+      updateUIForUser  ();
     }
 
-    function updateUIForUser () {
+    function updateUIForUser  () {
       document.getElementById("loginForm").classList.add("hidden");
       document.getElementById("dashboard").classList.remove("hidden");
       document.getElementById("logoutBtn").classList.remove("hidden");
-      document.getElementById("usernameDisplay").textContent = currentUser .username;
+      document.getElementById("usernameDisplay").textContent = currentUser  .username;
 
       const roleDisplay = document.getElementById("roleDisplay");
-      roleDisplay.textContent = currentUser .role;
-      roleDisplay.className = `role-indicator ${currentUser .role}`;
+      roleDisplay.textContent = currentUser  .role;
+      roleDisplay.className = `role-indicator ${currentUser  .role}`;
 
       document.getElementById("dashboardTitle").textContent =
-        currentUser .role === "teacher"
-          ? `Teacher Dashboard - Class ${currentUser .class}`
-          : currentUser .role === "admin"
+        currentUser  .role === "teacher"
+          ? `Teacher Dashboard - Class ${currentUser  .class}`
+          : currentUser  .role === "admin"
           ? `Admin Dashboard`
-          : `Homework View - Class ${currentUser .class}`;
+          : `Homework View - ${currentUser  .class}`;
 
-      if (currentUser .role === "teacher") {
+      if (currentUser  .role === "teacher") {
         document.getElementById("teacherControls").classList.remove("hidden");
         document.getElementById("actionsHeader").style.display = "table-cell";
       } else {
@@ -234,7 +235,7 @@
         document.getElementById("actionsHeader").style.display = "none";
       }
 
-      const classPath = `homework/class${currentUser .class}`;
+      const classPath = `homework/class${currentUser  .class}`;
       db.ref(classPath).once("value", (snapshot) => {
         const data = snapshot.val();
         homeworkData = data
@@ -245,7 +246,7 @@
     }
 
     function handleLogout() {
-      currentUser  = null;
+      currentUser   = null;
       document.getElementById("loginForm").classList.remove("hidden");
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
@@ -262,17 +263,17 @@
         subject,
         text,
         teacher,
-        class: currentUser .class
+        class: currentUser  .class
       };
-      db.ref(`homework/class${currentUser .class}`).push(hw);
+      db.ref(`homework/class${currentUser  .class}`).push(hw);
       document.getElementById("addHomeworkModal").classList.add("hidden");
       e.target.reset();
-      updateUIForUser (); // refresh
+      updateUIForUser  (); // refresh
     }
 
     function deleteHomework(id) {
-      if (currentUser .role === "admin") {
-        db.ref(`homework/class${currentUser .class}/${id}`).remove();
+      if (currentUser  .role === "admin") {
+        db.ref(`homework/class${currentUser  .class}/${id}`).remove();
         homeworkData = homeworkData.filter(hw => hw.id !== id);
         renderHomework();
       }
@@ -281,7 +282,7 @@
     function renderHomework() {
       const tableBody = document.getElementById("homeworkTableBody");
       tableBody.innerHTML = "";
-      const filtered = homeworkData.filter(hw => hw.class === currentUser .class);
+      const filtered = homeworkData.filter(hw => hw.class === currentUser  .class);
       if (filtered.length === 0) {
         document.getElementById("emptyState").classList.remove("hidden");
         return;
@@ -291,12 +292,12 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="px-6 py-4">${hw.date}</td>
-          <td class="px-6 py-4">Class ${hw.class}</td>
+          <td class="px-6 py-4">${hw.class}</td>
           <td class="px-6 py-4">${hw.subject}</td>
           <td class="px-6 py-4">${hw.text}</td>
           <td class="px-6 py-4">${hw.teacher}</td>
           <td class="px-6 py-4">
-            ${currentUser .role === "admin"
+            ${currentUser  .role === "admin"
               ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600">Delete</button>` : ""}
           </td>
         `;
