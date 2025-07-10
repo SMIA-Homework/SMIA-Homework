@@ -27,6 +27,15 @@
       cursor: pointer;
     }
     .grid-stack { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+    .selector-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .selector-container select {
+      min-width: 150px;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -39,7 +48,7 @@
           <h1 class="ml-3 text-xl font-semibold text-gray-900">SMIA Homework Tracker</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <div id="currentUser   Display" class="hidden md:flex items-center">
+          <div id="currentUserDisplay" class="hidden md:flex items-center">
             <span id="usernameDisplay" class="font-medium"></span>
             <span id="roleDisplay" class="role-indicator ml-2 px-3 py-1 rounded-full text-sm font-medium"></span>
           </div>
@@ -121,7 +130,40 @@
       <!-- Dashboard -->
       <div id="dashboard" class="hidden">
         <div class="flex justify-between items-center mb-6">
-          <h2 id="dashboardTitle" class="text-2xl font-bold text-gray-800"></h2>
+          <div>
+            <h2 id="dashboardTitle" class="text-2xl font-bold text-gray-800"></h2>
+            <div id="classSelector" class="selector-container mt-2 hidden">
+              <div>
+                <label for="currentClassSelect" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                <select id="currentClassSelect" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                  <option value="Play Boys A">Play Boys A</option>
+                  <option value="Play Boys B">Play Boys B</option>
+                  <option value="Play Girls">Play Girls</option>
+                  <option value="Nursery Boys A">Nursery Boys A</option>
+                  <option value="Nursery Boys B">Nursery Boys B</option>
+                  <option value="Nursery Girls A">Nursery Girls A</option>
+                  <option value="Nursery Girls B">Nursery Girls B</option>
+                  <option value="One Boys A">One Boys A</option>
+                  <option value="One Boys B">One Boys B</option>
+                  <option value="One Girls">One Girls</option>
+                  <option value="Two Boys A">Two Boys A</option>
+                  <option value="Two Boys B">Two Boys B</option>
+                  <option value="Two Girls">Two Girls</option>
+                  <option value="Three Boys">Three Boys</option>
+                  <option value="Three Girls">Three Girls</option>
+                  <option value="Four Boys">Four Boys</option>
+                  <option value="Four Girls">Four Girls</option>
+                  <option value="Five Boys">Five Boys</option>
+                  <option value="Five Girls">Five Girls</option>
+                  <option value="Six">Six</option>
+                  <option value="Seven">Seven</option>
+                </select>
+              </div>
+              <div class="self-end">
+                <button id="updateClassBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">Update Class</button>
+              </div>
+            </div>
+          </div>
           <div id="teacherControls" class="hidden space-x-2">
             <button id="addHomeworkBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm">Add Homework</button>
           </div>
@@ -205,14 +247,25 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentUser    = null;
+    let currentUser = null;
     let homeworkData = [];
+
+    // Check for saved session on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedSession = localStorage.getItem('smiaHomeworkSession');
+      if (savedSession) {
+        const session = JSON.parse(savedSession);
+        currentUser = session;
+        updateUIForUser();
+      }
+    });
 
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
     document.getElementById("logoutBtn").addEventListener("click", handleLogout);
     document.getElementById("addHomeworkBtn").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.remove("hidden"));
     document.getElementById("closeModal").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.add("hidden"));
     document.getElementById("homeworkForm").addEventListener("submit", handleHomeworkSubmit);
+    document.getElementById("updateClassBtn").addEventListener("click", updateCurrentClass);
 
     function handleLogin() {
       const branch = document.getElementById("userBranch").value;
@@ -221,44 +274,116 @@
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      // Updated password validation
-      if ((role === 'teacher' && (username !== 'SMIAT' || password !== '24569')) ||
-          (role === 'guardian' && (username !== 'SMIAG' || password !== '72042')) ||
-          (role === 'admin' && (username !== 'SMIA' || password !== 'ad240'))) {
-        alert('Invalid credentials');
+      // Define branch-specific passwords
+      const branchPasswords = {
+        "Chandpur": {
+          "teacher": "83472",
+          "guardian": "19473",
+          "admin": "20894"
+        },
+        "Hajiganj": {
+          "teacher": "90214",
+          "guardian": "58209",
+          "admin": "31765"
+        },
+        "Faridpur-Housing": {
+          "teacher": "61593",
+          "guardian": "76031",
+          "admin": "69420"
+        },
+        "Faridpur-Jhiltuly": {
+          "teacher": "74820",
+          "guardian": "83645",
+          "admin": "58037"
+        }
+      };
+
+      // Check if username is correct for the role
+      if ((role === 'teacher' && username !== 'SMIAT') ||
+          (role === 'guardian' && username !== 'SMIAG') ||
+          (role === 'admin' && username !== 'SMIA')) {
+        alert('Invalid username for selected role');
         return;
       }
 
-      currentUser    = { username, role, class: selectedClass, branch };
-      updateUIForUser   ();
+      // Check if password matches the branch and role
+      if (password !== branchPasswords[branch][role]) {
+        alert('Invalid password for selected branch and role');
+        return;
+      }
+
+      currentUser = { 
+        username, 
+        role, 
+        class: selectedClass, 
+        branch,
+        auth: true // Mark as authenticated
+      };
+      
+      // Save session to localStorage
+      localStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
+      
+      updateUIForUser();
     }
 
-    function updateUIForUser   () {
+    function updateUIForUser() {
       document.getElementById("loginForm").classList.add("hidden");
       document.getElementById("dashboard").classList.remove("hidden");
       document.getElementById("logoutBtn").classList.remove("hidden");
-      document.getElementById("usernameDisplay").textContent = currentUser   .username;
+      document.getElementById("currentUserDisplay").classList.remove("hidden");
+      document.getElementById("usernameDisplay").textContent = currentUser.username;
 
       const roleDisplay = document.getElementById("roleDisplay");
-      roleDisplay.textContent = currentUser   .role;
-      roleDisplay.className = `role-indicator ${currentUser   .role}`;
+      roleDisplay.textContent = currentUser.role;
+      roleDisplay.className = `role-indicator ${currentUser.role}`;
 
       document.getElementById("dashboardTitle").textContent =
-        currentUser   .role === "teacher"
-          ? `Teacher Dashboard - Class ${currentUser   .class} (${currentUser   .branch})`
-          : currentUser   .role === "admin"
-          ? `Admin Dashboard`
-          : `Homework View - ${currentUser   .class} (${currentUser   .branch})`;
+        currentUser.role === "teacher"
+          ? `Teacher Dashboard - Class ${currentUser.class} (${currentUser.branch})`
+          : currentUser.role === "admin"
+          ? `Admin Dashboard - ${currentUser.branch}`
+          : `Homework View - ${currentUser.class} (${currentUser.branch})`;
 
-      if (currentUser   .role === "teacher") {
+      // Show class selector for all roles
+      document.getElementById("classSelector").classList.remove("hidden");
+      document.getElementById("currentClassSelect").value = currentUser.class;
+
+      // Show teacher controls only for teachers
+      if (currentUser.role === "teacher") {
         document.getElementById("teacherControls").classList.remove("hidden");
-        document.getElementById("actionsHeader").style.display = "table-cell";
       } else {
         document.getElementById("teacherControls").classList.add("hidden");
+      }
+
+      // Show actions column only for admin
+      if (currentUser.role === "admin") {
+        document.getElementById("actionsHeader").style.display = "table-cell";
+      } else {
         document.getElementById("actionsHeader").style.display = "none";
       }
 
-      const classPath = `homework/${currentUser   .branch}/class${currentUser   .class}`;
+      loadHomeworkData();
+    }
+
+    function updateCurrentClass() {
+      const newClass = document.getElementById("currentClassSelect").value;
+      
+      currentUser.class = newClass;
+      
+      localStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
+      
+      document.getElementById("dashboardTitle").textContent =
+        currentUser.role === "teacher"
+          ? `Teacher Dashboard - Class ${currentUser.class} (${currentUser.branch})`
+          : currentUser.role === "admin"
+          ? `Admin Dashboard - ${currentUser.branch}`
+          : `Homework View - ${currentUser.class} (${currentUser.branch})`;
+      
+      loadHomeworkData();
+    }
+
+    function loadHomeworkData() {
+      const classPath = `homework/${currentUser.branch}/class${currentUser.class}`;
       db.ref(classPath).once("value", (snapshot) => {
         const data = snapshot.val();
         homeworkData = data
@@ -269,10 +394,14 @@
     }
 
     function handleLogout() {
-      currentUser    = null;
+      currentUser = null;
+      localStorage.removeItem('smiaHomeworkSession');
       document.getElementById("loginForm").classList.remove("hidden");
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("currentUserDisplay").classList.add("hidden");
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
     }
 
     function handleHomeworkSubmit(e) {
@@ -286,26 +415,28 @@
         subject,
         text,
         teacher,
-        class: currentUser   .class
+        class: currentUser.class
       };
-      db.ref(`homework/${currentUser   .branch}/class${currentUser   .class}`).push(hw);
+      db.ref(`homework/${currentUser.branch}/class${currentUser.class}`).push(hw);
       document.getElementById("addHomeworkModal").classList.add("hidden");
       e.target.reset();
-      updateUIForUser   (); // refresh
+      loadHomeworkData(); // refresh
     }
 
     function deleteHomework(id) {
-      if (currentUser   .role === "admin") {
-        db.ref(`homework/${currentUser   .branch}/class${currentUser   .class}/${id}`).remove();
-        homeworkData = homeworkData.filter(hw => hw.id !== id);
-        renderHomework();
+      if (currentUser.role === "admin") {
+        if (confirm("Are you sure you want to delete this homework?")) {
+          db.ref(`homework/${currentUser.branch}/class${currentUser.class}/${id}`).remove();
+          homeworkData = homeworkData.filter(hw => hw.id !== id);
+          renderHomework();
+        }
       }
     }
 
     function renderHomework() {
       const tableBody = document.getElementById("homeworkTableBody");
       tableBody.innerHTML = "";
-      const filtered = homeworkData.filter(hw => hw.class === currentUser   .class);
+      const filtered = homeworkData.filter(hw => hw.class === currentUser.class);
       if (filtered.length === 0) {
         document.getElementById("emptyState").classList.remove("hidden");
         return;
@@ -320,8 +451,8 @@
           <td class="px-6 py-4">${hw.text}</td>
           <td class="px-6 py-4">${hw.teacher}</td>
           <td class="px-6 py-4">
-            ${currentUser   .role === "admin"
-              ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600">Delete</button>` : ""}
+            ${currentUser.role === "admin"
+              ? `<button onclick="deleteHomework('${hw.id}')" class="text-red-600 hover:text-red-800">Delete</button>` : ""}
           </td>
         `;
         tableBody.appendChild(tr);
