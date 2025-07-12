@@ -239,7 +239,7 @@
       authDomain: "smia-homework.firebaseapp.com",
       databaseURL: "https://smia-homework-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "smia-homework",
-      storageBucket: "smia-homework.firebasestorage.app",
+      storageBucket: "smia-homework.appspot.com",
       messagingSenderId: "909329408177",
       appId: "1:909329408177:web:969577fab9f738c7fec290"
     };
@@ -250,22 +250,35 @@
     let currentUser = null;
     let homeworkData = [];
 
-    // Check for saved session on page load
+    // Initialize with forced disconnection handlers
     document.addEventListener('DOMContentLoaded', () => {
-      const savedSession = localStorage.getItem('smiaHomeworkSession');
-      if (savedSession) {
-        const session = JSON.parse(savedSession);
-        currentUser = session;
-        updateUIForUser();
-      }
+      // Clear any existing session
+      sessionStorage.removeItem('smiaHomeworkSession');
+      
+      // Set up visibility change listener for browser tab minimize
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && currentUser) {
+          forceDisconnect();
+          handleLogout();
+        }
+      });
+      
+      // Set up beforeunload listener for page refresh/close
+      window.addEventListener('beforeunload', () => {
+        if (currentUser) {
+          forceDisconnect();
+          handleLogout();
+        }
+      });
     });
 
-    document.getElementById("loginBtn").addEventListener("click", handleLogin);
-    document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-    document.getElementById("addHomeworkBtn").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.remove("hidden"));
-    document.getElementById("closeModal").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.add("hidden"));
-    document.getElementById("homeworkForm").addEventListener("submit", handleHomeworkSubmit);
-    document.getElementById("updateClassBtn").addEventListener("click", updateCurrentClass);
+    // Forcefully disconnect from Firebase
+    function forceDisconnect() {
+      if (firebase.database) {
+        firebase.database().goOffline();
+      }
+      sessionStorage.removeItem('smiaHomeworkSession');
+    }
 
     function handleLogin() {
       const branch = document.getElementById("userBranch").value;
@@ -317,13 +330,27 @@
         role, 
         class: selectedClass, 
         branch,
-        auth: true // Mark as authenticated
+        auth: true
       };
       
-      // Save session to localStorage
-      localStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
+      // Save session to sessionStorage (clears on tab close)
+      sessionStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
+      
+      // Establish fresh connection
+      firebase.database().goOnline();
       
       updateUIForUser();
+    }
+
+    function handleLogout() {
+      forceDisconnect();
+      currentUser = null;
+      document.getElementById("loginForm").classList.remove("hidden");
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("currentUserDisplay").classList.add("hidden");
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
     }
 
     function updateUIForUser() {
@@ -367,18 +394,14 @@
 
     function updateCurrentClass() {
       const newClass = document.getElementById("currentClassSelect").value;
-      
       currentUser.class = newClass;
-      
-      localStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
-      
+      sessionStorage.setItem('smiaHomeworkSession', JSON.stringify(currentUser));
       document.getElementById("dashboardTitle").textContent =
         currentUser.role === "teacher"
           ? `Teacher Dashboard - Class ${currentUser.class} (${currentUser.branch})`
           : currentUser.role === "admin"
           ? `Admin Dashboard - ${currentUser.branch}`
           : `Homework View - ${currentUser.class} (${currentUser.branch})`;
-      
       loadHomeworkData();
     }
 
@@ -391,17 +414,6 @@
           : [];
         renderHomework();
       });
-    }
-
-    function handleLogout() {
-      currentUser = null;
-      localStorage.removeItem('smiaHomeworkSession');
-      document.getElementById("loginForm").classList.remove("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("logoutBtn").classList.add("hidden");
-      document.getElementById("currentUserDisplay").classList.add("hidden");
-      document.getElementById("username").value = "";
-      document.getElementById("password").value = "";
     }
 
     function handleHomeworkSubmit(e) {
@@ -420,7 +432,7 @@
       db.ref(`homework/${currentUser.branch}/class${currentUser.class}`).push(hw);
       document.getElementById("addHomeworkModal").classList.add("hidden");
       e.target.reset();
-      loadHomeworkData(); // refresh
+      loadHomeworkData();
     }
 
     function deleteHomework(id) {
@@ -458,6 +470,14 @@
         tableBody.appendChild(tr);
       });
     }
+
+    // Event Listeners
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+    document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+    document.getElementById("addHomeworkBtn").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.remove("hidden"));
+    document.getElementById("closeModal").addEventListener("click", () => document.getElementById("addHomeworkModal").classList.add("hidden"));
+    document.getElementById("homeworkForm").addEventListener("submit", handleHomeworkSubmit);
+    document.getElementById("updateClassBtn").addEventListener("click", updateCurrentClass);
   </script>
 </body>
 </html>
