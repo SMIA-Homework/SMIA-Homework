@@ -88,38 +88,7 @@
         <div class="mb-4">
           <label for="userClass" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
           <select id="userClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-            <option value="Play Boys A">Play Boys A</option>
-  	        <option value="Play Boys B">Play Boys B</option>
-  	        <option value="Play Girls">Play Girls</option>
-  	        <option value="Nursery Boys A">Nursery Boys A</option>
-    	      <option value="Nursery Boys B">Nursery Boys B</option>
-            <option value="Nursery Girls A">Nursery Girls A</option>
-  	        <option value="Nursery Girls B">Nursery Girls B</option>
-  	        <option value="One Boys A">One Boys A</option>
-  	        <option value="One Boys B">One Boys B</option>
-  	        <option value="One Girls">One Girls</option>
-  	        <option value="Two Boys A">Two Boys A</option>
-  	        <option value="Two Boys B">Two Boys B</option>
-  	        <option value="Two Girls">Two Girls</option>
-  	        <option value="Three Boys">Three Boys</option>
-  	        <option value="Three Girls">Three Girls</option>
-  	        <option value="Four Boys">Four Boys</option>
-    	      <option value="Four Girls">Four Girls</option>
-  	        <option value="Five Boys">Five Boys</option>
-  	        <option value="Five Girls">Five Girls</option>
-  	        <option value="Six">Six</option>
-  	        <option value="Seven">Seven</option>
-  	        <!-- New classes added below -->
-  	        <option value="Qaida-KA (1-2)">Qaida-KA (1-2)</option>
-     	      <option value="Qaida-KHA (1-2)">Qaida-KHA (1-2)</option>
-  	        <option value="Ampara (1-2)">Ampara (1-2)</option>
-  	        <option value="Qaida (3-7)">Qaida (3-7)</option>
-  	        <option value="Ampara (3-7)">Ampara (3-7)</option>
-  	        <option value="Quran (3-7)">Quran (3-7)</option>
-  	        <option value="Hifz & Nazera (3-7)">Hifz & Nazera (3-7)</option>
-  	        <option value="Spoken Arabic-KA (3-7)">Spoken Arabic-KA (3-7)</option>
-  	        <option value="Spoken Arabic-KHA (3-7)">Spoken Arabic-KHA (3-7)</option>
-  	        <option value="Spoken Arabic-GA (3-7)">Spoken Arabic-GA (3-7)</option>
+            <!-- Classes will be populated dynamically -->
           </select>
         </div>
 
@@ -147,38 +116,7 @@
               <div>
                 <label for="currentClassSelect" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
                 <select id="currentClassSelect" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                  <option value="Play Boys A">Play Boys A</option>
-  		            <option value="Play Boys B">Play Boys B</option>
-  		            <option value="Play Girls">Play Girls</option>
-  		            <option value="Nursery Boys A">Nursery Boys A</option>
-  		            <option value="Nursery Boys B">Nursery Boys B</option>
-  		            <option value="Nursery Girls A">Nursery Girls A</option>
-  		            <option value="Nursery Girls B">Nursery Girls B</option>
-  		            <option value="One Boys A">One Boys A</option>
-  		            <option value="One Boys B">One Boys B</option>
-  		            <option value="One Girls">One Girls</option>
-  		            <option value="Two Boys A">Two Boys A</option>
-  		            <option value="Two Boys B">Two Boys B</option>
-  		            <option value="Two Girls">Two Girls</option>
-  		            <option value="Three Boys">Three Boys</option>
-  		            <option value="Three Girls">Three Girls</option>
-  		            <option value="Four Boys">Four Boys</option>
-  		            <option value="Four Girls">Four Girls</option>
-  		            <option value="Five Boys">Five Boys</option>
-  		            <option value="Five Girls">Five Girls</option>
-  		            <option value="Six">Six</option>
-  		            <option value="Seven">Seven</option>
-  		            <!-- New classes added below -->
-  		            <option value="Qaida-KA (1-2)">Qaida-KA (1-2)</option>
-     		          <option value="Qaida-KHA (1-2)">Qaida-KHA (1-2)</option>
-  		            <option value="Ampara (1-2)">Ampara (1-2)</option>
-  		            <option value="Qaida (3-7)">Qaida (3-7)</option>
-  		            <option value="Ampara (3-7)">Ampara (3-7)</option>
-  		            <option value="Quran (3-7)">Quran (3-7)</option>
-  		            <option value="Hifz & Nazera (3-7)">Hifz & Nazera (3-7)</option>
-  		            <option value="Spoken Arabic-KA (3-7)">Spoken Arabic-KA (3-7)</option>
-  		            <option value="Spoken Arabic-KHA (3-7)">Spoken Arabic-KHA (3-7)</option>
-  		            <option value="Spoken Arabic-GA (3-7)">Spoken Arabic-GA (3-7)</option>
+                  <!-- Classes will be populated dynamically -->
                 </select>
               </div>
               <div class="self-end">
@@ -272,8 +210,88 @@
     let currentUser = null;
     let homeworkData = [];
 
+    // Define classes for each branch
+    const branchClasses = {
+      "Chandpur": [
+        "Play Boys", "Play Girls", 
+        "Nursery Boys", "Nursery Girls", 
+        "One Boys", "One Girls", 
+        "Two Boys", "Two Girls",
+        "Three Boys", "Three Girls",
+        "Four Boys", "Four Girls",
+        "Five Boys", "Five Girls",
+        "Six", "Seven",
+        "Qaida-KA (1-2)", "Qaida-KHA (1-2)",
+        "Ampara (1-2)", "Qaida (3-7)",
+        "Ampara (3-7)", "Quran (3-7)",
+        "Hifz & Nazera (3-7)", "Spoken Arabic-KA (3-7)",
+        "Spoken Arabic-KHA (3-7)", "Spoken Arabic-GA (3-7)"
+      ],
+      "Hajiganj": [
+        "Play", "Nursery", "One", "Two", "Three", "Four", "Five", "Six", "Seven",
+        "Qaida-KA (1-2)", "Qaida-KHA (1-2)",
+        "Ampara (1-2)", "Qaida (3-7)",
+        "Ampara (3-7)", "Quran (3-7)",
+        "Hifz & Nazera (3-7)", "Spoken Arabic-KA (3-7)",
+        "Spoken Arabic-KHA (3-7)", "Spoken Arabic-GA (3-7)"
+      ],
+      "Faridpur-Housing": [
+        "Play Boys A", "Play Boys B", "Play Girls",
+        "Nursery Boys A", "Nursery Boys B", "Nursery Girls A", "Nursery Girls B",
+        "One Boys A", "One Boys B", "One Girls",
+        "Two Boys A", "Two Boys B", "Two Girls",
+        "Three Boys", "Three Girls",
+        "Four Boys", "Four Girls",
+        "Five Boys", "Five Girls",
+        "Six", "Seven",
+        "Qaida-KA (1-2)", "Qaida-KHA (1-2)",
+        "Ampara (1-2)", "Qaida (3-7)",
+        "Ampara (3-7)", "Quran (3-7)",
+        "Hifz & Nazera (3-7)", "Spoken Arabic-KA (3-7)",
+        "Spoken Arabic-KHA (3-7)", "Spoken Arabic-GA (3-7)"
+      ],
+      "Faridpur-Jhiltuly": [
+        "Play Boys A", "Play Boys B", "Play Girls",
+        "Nursery Boys A", "Nursery Boys B", "Nursery Girls A", "Nursery Girls B",
+        "One Boys A", "One Boys B", "One Girls",
+        "Two Boys A", "Two Boys B", "Two Girls",
+        "Three Boys", "Three Girls",
+        "Four Boys", "Four Girls",
+        "Five Boys", "Five Girls",
+        "Six", "Seven",
+        "Qaida-KA (1-2)", "Qaida-KHA (1-2)",
+        "Ampara (1-2)", "Qaida (3-7)",
+        "Ampara (3-7)", "Quran (3-7)",
+        "Hifz & Nazera (3-7)", "Spoken Arabic-KA (3-7)",
+        "Spoken Arabic-KHA (3-7)", "Spoken Arabic-GA (3-7)"
+      ]
+    };
+
+    // Function to populate class dropdown based on selected branch
+    function updateClassDropdown(branch, dropdownId) {
+      const dropdown = document.getElementById(dropdownId);
+      dropdown.innerHTML = '';
+      
+      if (branch && branchClasses[branch]) {
+        branchClasses[branch].forEach(className => {
+          const option = document.createElement('option');
+          option.value = className;
+          option.textContent = className;
+          dropdown.appendChild(option);
+        });
+      }
+    }
+
     // Initialize with forced disconnection handlers
     document.addEventListener('DOMContentLoaded', () => {
+      // Set up branch change listener
+      document.getElementById('userBranch').addEventListener('change', function() {
+        updateClassDropdown(this.value, 'userClass');
+      });
+      
+      // Initialize class dropdown with default branch
+      updateClassDropdown('Chandpur', 'userClass');
+      
       // Clear any existing session
       sessionStorage.removeItem('smiaHomeworkSession');
       
@@ -395,6 +413,7 @@
 
       // Show class selector for all roles
       document.getElementById("classSelector").classList.remove("hidden");
+      updateClassDropdown(currentUser.branch, 'currentClassSelect');
       document.getElementById("currentClassSelect").value = currentUser.class;
 
       // Show teacher controls only for teachers
